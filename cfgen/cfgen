@@ -1192,7 +1192,12 @@ class ConfPool(ToDhall):
         m0conf[pool_id] = cls(pvers=[], name=pool_desc.get('name'))
         m0conf[parent].pools.append(pool_id)
 
-        spare_units = pool_desc['spare_units']
+        spare_units = pool_desc.get('spare_units')
+        if 'parity_units' in pool_desc:
+            spare_units = spare_units or pool_desc['parity_units']
+        else:
+            spare_units = spare_units or 0
+
         assert spare_units is None\
             or spare_units == 0\
             or spare_units == pool_desc['parity_units']
