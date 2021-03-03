@@ -47,6 +47,7 @@ let genCdf
                 , disk_refs = None (List { node : Optional Text, path : Text })
                 , name = "the pool"
                 , parity_units = 0
+                , spare_units = None Natural
                 , type = Some T.PoolType.sns
                 }
               ]
