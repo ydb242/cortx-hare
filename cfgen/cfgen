@@ -329,9 +329,10 @@ def validate_pools_desc(pools_desc: List[Dict[str, Any]]) -> None:
         t = pool_type(pool)
         if t is PoolT.sns:
             d = pool.get('allowed_failures')
-            assert pool['spare_units'] is None\
-                or pool['spare_units'] == 0\
-                or pool['spare_units'] == pool['parity_units']
+            spare_units = pool.get('spare_units')
+            assert spare_units is None\
+                or spare_units == 0\
+                or spare_units == pool['parity_units']
             assert d is None or d['disk'] <= pool['spare_units'], """\
 {}: Cannot allow that many disk failures ({})
 The number of allowed disk failures must not exceed the number of spare disks\
@@ -1208,7 +1209,7 @@ class ConfPool(ToDhall):
         if 'data_units' in pool_desc:
             pd_attrs = PDClustAttrs0(pool_desc['data_units'],
                                      pool_desc['parity_units'],
-                                     pool_desc['spare_units'])
+                                     spare_units)
         else:
             if t is PoolT.dix:
                 # For CAS service N must be equal to 1.  CAS records are

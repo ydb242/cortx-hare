@@ -23,6 +23,6 @@
 , disk_refs : Optional (List ./DiskRef.dhall)
 , data_units : Natural
 , parity_units : Natural
-, spare_units : Natural
+, spare_units : Optional Natural
 , allowed_failures : Optional ./FailVec.dhall
 }
