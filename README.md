@@ -63,7 +63,10 @@ and health-checking mechanisms.
 
    Please refer to [the instruction](https://github.com/Seagate/cortx-utils/blob/main/py-utils/README.md) to install corxt-py-utils from sources.
 
+* Install latest puppet-agent (&ge; 6.13.0).
 
+  Please refer [puppet-agent installation](https://puppet.com/docs/puppet/7/install_agents.html#install_agents) to install puppet-agent.
+  
 * Build and Install Motr.
 
   *  Follow [Motr quick start guide](https://github.com/Seagate/cortx-motr/blob/main/doc/Quick-Start-Guide.rst) to build Motr from source. After compiling Motr sources, please continue with the below steps to build Hare using Motr sources.
