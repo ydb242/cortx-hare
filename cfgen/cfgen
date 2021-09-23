@@ -913,7 +913,7 @@ class ConfProcess(ToDhall):
         proto = node_desc.get('data_iface_type', 'tcp')
         ep = Endpoint(proto=NetProtocol[proto],
                       ipaddr=facts[ipaddr_key(node_desc['data_iface'])],
-                      portal=proc_t.value)
+                      portal=proc_t.value + 30)
         proc_id = new_oid(ObjT.process)
 
         meta_data = None
@@ -1945,7 +1945,7 @@ def consul_kv_sdevs(m0conf: Dict[Oid, Any]) -> Dict[str, str]:
             assert proc_id.type is ObjT.process
             proc_key = f'{node_key}/processes/' + oid_to_fidstr(proc_id)
             # XXX-VERIFYME Can we really convert from portal (int) to name?
-            proc_name = ProcT(m0conf[proc_id].endpoint.portal).name
+            proc_name = ProcT(m0conf[proc_id].endpoint.portal - 30).name
             d[proc_key] = json.dumps({'name': proc_name,
                                       'state': 'M0_NC_UNKNOWN'})
             for svc_id in m0conf[proc_id].services:
@@ -2001,7 +2001,7 @@ def generate_consul_kv(cluster: Cluster, dhall_dir: str) -> str:
                                         proc_id=proc_id,
                                         ep=proc.endpoint,
                                         svc_id=cluster.m0_clients[proc_id],
-                                        stype=ProcT(proc_ep.portal).name,
+                                        stype=ProcT(proc_ep.portal - 30).name,
                                         meta_data=None)
 
     def sns_pools() -> List[Oid]:
