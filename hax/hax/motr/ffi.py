@@ -116,7 +116,9 @@ class HaxFFI:
         ]
         self.hax_link_stopped = lib.m0_hax_link_stopped
 
-        lib.adopt_motr_thread.argtypes = []
+        lib.adopt_motr_thread.argtypes = [
+            c.c_void_p  # unsigned long long  hax_context
+        ]
         lib.adopt_motr_thread.restype = c.c_int
         self.adopt_motr_thread = lib.adopt_motr_thread
         self.shun_motr_thread = lib.shun_motr_thread
