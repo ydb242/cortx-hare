@@ -20,7 +20,8 @@ import logging
 from typing import List
 from threading import Event
 from hax.types import StoppableThread
-from hare_mp.utils import execute_no_communicate, LogWriter, Utils
+from hare_mp.utils import (execute_no_communicate, func_enter, func_leave,
+                           LogWriter, Utils)
 
 LOG = logging.getLogger('consul')
 LOG_FILE_SIZE = 1024 * 1024 * 1024
@@ -30,6 +31,8 @@ class ConsulStarter(StoppableThread):
     """
     Starts consul agent and blocks until terminated.
     """
+    @func_enter()
+    @func_leave()
     def __init__(self, utils: Utils, stop_event: Event, log_dir: str,
                  data_dir: str, config_dir: str, peers: List[str],
                  bind_addr: str = '0.0.0.0',
@@ -46,6 +49,8 @@ class ConsulStarter(StoppableThread):
         self.bind_addr = bind_addr
         self.client_addr = client_addr
 
+    @func_enter()
+    @func_leave()
     def stop(self):
         try:
             if self.process:
@@ -53,6 +58,8 @@ class ConsulStarter(StoppableThread):
         except Exception:
             pass
 
+    @func_enter()
+    @func_leave()
     def _execute(self):
         try:
             log_file = f'{self.log_dir}/hare-consul.log'

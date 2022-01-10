@@ -21,7 +21,8 @@ import sys
 from threading import Event
 import os
 from hax.types import StoppableThread
-from hare_mp.utils import execute_no_communicate, LogWriter, Utils
+from hare_mp.utils import (execute_no_communicate, func_enter, func_leave,
+                           LogWriter, Utils)
 
 LOG = logging.getLogger('hax')
 LOG_FILE_SIZE = 1024 * 1024 * 1024
@@ -31,6 +32,8 @@ class HaxStarter(StoppableThread):
     """
     Starts consul agent and blocks until terminated.
     """
+    @func_enter()
+    @func_leave()
     def __init__(self, utils: Utils, stop_event: Event, home_dir: str,
                  log_dir: str):
         super().__init__(target=self._execute,
@@ -41,6 +44,8 @@ class HaxStarter(StoppableThread):
         self.home_dir = home_dir
         self.log_dir = log_dir
 
+    @func_enter()
+    @func_leave()
     def stop(self):
         try:
             if self.process:
@@ -48,6 +53,8 @@ class HaxStarter(StoppableThread):
         except Exception:
             pass
 
+    @func_enter()
+    @func_leave()
     def _execute(self):
         try:
             hax_log_file = f'{self.log_dir}/hare-hax.log'
