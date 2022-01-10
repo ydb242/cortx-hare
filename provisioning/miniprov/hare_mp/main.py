@@ -131,6 +131,8 @@ def _report_unsupported_features(features_unavailable):
         uf_db.store_unsupported_features('hare', features_unavailable))
 
 
+@func_enter()
+@func_leave()
 def get_server_type(url: str) -> str:
     try:
         provider = ConfStoreProvider(url)
@@ -145,6 +147,8 @@ def get_server_type(url: str) -> str:
         return 'unknown'
 
 
+@func_enter()
+@func_leave()
 def is_mkfs_required(url: str) -> bool:
     try:
         conf = ConfStoreProvider(url)
@@ -270,6 +274,8 @@ def _start_consul(utils: Utils,
     return consul_starter
 
 
+@func_enter()
+@func_leave()
 def _start_hax(utils: Utils,
                stop_event: Event,
                hare_local_dir: str,
@@ -311,6 +317,8 @@ def disable_hare_consul_agent() -> None:
     execute(cmd)
 
 
+@func_enter()
+@func_leave()
 def prepare(args):
     url = args.config[0]
     utils = Utils(ConfStoreProvider(url))
@@ -368,6 +376,8 @@ def start_crond():
     execute(cmd)
 
 
+@func_enter()
+@func_leave()
 def start_hax_and_consul_without_systemd(url: str, utils: Utils):
     conf_dir = get_config_dir(url)
     log_dir = get_log_dir(url)
@@ -383,6 +393,8 @@ def start_hax_and_consul_without_systemd(url: str, utils: Utils):
         hax_starter.stop()
 
 
+@func_enter()
+@func_leave()
 def start(args):
     logging.info('Starting Hare services')
     url = args.config[0]
@@ -405,13 +417,15 @@ class ProcessStartInfo:
     fid: str
 
 
+@func_enter()
+@func_leave()
 def start_mkfs(proc_to_start: ProcessStartInfo) -> int:
     try:
-        logging.debug('Starting mkfs process [fid=%s] at hostname=%s',
-                      proc_to_start.fid, proc_to_start.hostname)
+        logging.info('Starting mkfs process [fid=%s] at hostname=%s',
+                     proc_to_start.fid, proc_to_start.hostname)
         command = proc_to_start.cmd
         execute(command)
-        logging.debug('Started mkfs process [fid=%s]', proc_to_start.fid)
+        logging.info('Started mkfs process [fid=%s]', proc_to_start.fid)
         rc = 0
     except Exception as error:
         logging.error('Error launching mkfs [fid=%s] at hostname=%s: %s',
@@ -420,6 +434,8 @@ def start_mkfs(proc_to_start: ProcessStartInfo) -> int:
     return rc
 
 
+@func_enter()
+@func_leave()
 def start_mkfs_parallel(hostname: str, hare_config_dir: str):
     # TODO: path needs to be updated according to the new conf-store key
     sysconfig_dir = '/etc/sysconfig/'
@@ -484,6 +500,8 @@ def set_mkfs_done_for(node: str, cns_utils: ConsulUtil):
     cns_utils.kv.kv_put(f'mkfs_done/{node}', 'true')
 
 
+@func_enter()
+@func_leave()
 def init(args):
     try:
         url = args.config[0]
@@ -526,6 +544,8 @@ def init(args):
         raise RuntimeError(f'Error while initializing cluster :key={error}')
 
 
+@func_enter()
+@func_leave()
 def test(args):
     try:
         url = args.config[0]
