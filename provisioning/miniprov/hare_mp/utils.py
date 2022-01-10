@@ -25,6 +25,7 @@ import io
 import os
 import logging
 from typing import List
+from functools import wraps
 from distutils.dir_util import copy_tree
 import shutil
 
@@ -34,6 +35,37 @@ from helper.exec import Program, Executor
 
 from hare_mp.store import ValueProvider
 from hare_mp.types import Disk, DList, Maybe, Text
+
+
+def func_enter():
+    """
+    Logs function entry point.
+    """
+    def callable(f):
+        @wraps(f)
+        def wrapper(*args, **kwds):
+            func_name = f.__qualname__
+            logging.info('Entering %s', func_name)
+            return f(*args, **kwds)
+        return wrapper
+
+    return callable
+
+
+def func_leave():
+    """
+    Logs function exit point.
+    """
+    def callable(f):
+        @wraps(f)
+        def wrapper(*args, **kwds):
+            func_name = f.__qualname__
+            result = f(*args, **kwds)
+            logging.info('Leaving %s', func_name)
+            return result
+        return wrapper
+
+    return callable
 
 
 class Utils:

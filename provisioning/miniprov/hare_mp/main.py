@@ -47,7 +47,7 @@ from hare_mp.cdf import CdfGenerator
 from hare_mp.store import ConfStoreProvider
 from hare_mp.systemd import HaxUnitTransformer
 from hare_mp.validator import Validator
-from hare_mp.utils import execute, Utils
+from hare_mp.utils import execute, func_enter, func_leave, Utils
 from hare_mp.consul_starter import ConsulStarter
 from hare_mp.hax_starter import HaxStarter
 
@@ -158,6 +158,8 @@ def is_mkfs_required(url: str) -> bool:
         return False
 
 
+@func_enter()
+@func_leave()
 def logrotate_generic(url: str):
     try:
         with open('/opt/seagate/cortx/hare/conf/logrotate/hare',
@@ -175,6 +177,8 @@ def logrotate_generic(url: str):
         logging.error('Cannot configure logrotate for hare (%s)', error)
 
 
+@func_enter()
+@func_leave()
 def logrotate(url: str):
     ''' This function is kept incase needed in future.
         This function configures logrotate based on
@@ -200,6 +204,8 @@ def logrotate(url: str):
         logging.error('Cannot configure logrotate for hare (%s)', error)
 
 
+@func_enter()
+@func_leave()
 def unsupported_feature(url: str):
     try:
         features_unavailable = []
@@ -232,6 +238,8 @@ def _create_consul_namespace(hare_local_dir: str):
         os.makedirs(config_dir)
 
 
+@func_enter()
+@func_leave()
 def _start_consul(utils: Utils,
                   stop_event: Event,
                   hare_local_dir: str,
@@ -276,6 +284,8 @@ def _start_hax(utils: Utils,
     return hax_starter
 
 
+@func_enter()
+@func_leave()
 def post_install(args):
 
     checkRpm('cortx-motr')
@@ -598,6 +608,8 @@ def pre_factory(url):
     motr_cleanup()
 
 
+@func_enter()
+@func_leave()
 def get_log_dir(url) -> str:
     provider = ConfStoreProvider(url)
     machine_id = provider.get_machine_id()
@@ -605,6 +617,8 @@ def get_log_dir(url) -> str:
     return log_path + LOG_DIR_EXT + machine_id
 
 
+@func_enter()
+@func_leave()
 def get_config_dir(url) -> str:
     provider = ConfStoreProvider(url)
     machine_id = provider.get_machine_id()
@@ -718,6 +732,8 @@ def noop(args):
     pass
 
 
+@func_enter()
+@func_leave()
 def checkRpm(rpm_name):
     rpm_list = subprocess.Popen(["rpm", "-qa"],
                                 stdin=subprocess.PIPE,
@@ -730,8 +746,9 @@ def checkRpm(rpm_name):
                                   stderr=subprocess.PIPE,
                                   encoding='utf8')
     out, err = rpm_search.communicate()
-    logging.debug("Output: {}".format(out))
-    logging.debug("stderr: {}".format(err))
+    logging.info("Output: {}".format(out))
+    logging.info("rpm: {} found".format(rpm_name))
+    logging.info("stderr: {}".format(err))
     if rpm_search.returncode != 0:
         raise RuntimeError(f"rpm {rpm_name} is missing")
 
@@ -851,6 +868,8 @@ def save(filename: str, contents: str) -> None:
         f.write(contents)
 
 
+@func_enter()
+@func_leave()
 def generate_config(url: str, path_to_cdf: str) -> None:
     provider = ConfStoreProvider(url)
     utils = Utils(provider)
@@ -872,6 +891,8 @@ def generate_config(url: str, path_to_cdf: str) -> None:
     utils.import_kv(conf_dir)
 
 
+@func_enter()
+@func_leave()
 def update_hax_unit(filename: str) -> None:
     try:
         with open(filename) as f:
@@ -882,6 +903,8 @@ def update_hax_unit(filename: str) -> None:
         raise RuntimeError('Failed to update hax systemd unit: ' + str(e))
 
 
+@func_enter()
+@func_leave()
 def config(args):
     consul_starter = None
     try:
