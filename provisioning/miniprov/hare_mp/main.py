@@ -47,7 +47,7 @@ from hare_mp.cdf import CdfGenerator
 from hare_mp.store import ConfStoreProvider
 from hare_mp.systemd import HaxUnitTransformer
 from hare_mp.validator import Validator
-from hare_mp.utils import execute, func_enter, func_leave, Utils
+from hare_mp.utils import execute, func_log, func_enter, func_leave, Utils
 from hare_mp.consul_starter import ConsulStarter
 from hare_mp.hax_starter import HaxStarter
 
@@ -105,6 +105,7 @@ def setup_logging(url) -> None:
                         format='%(asctime)s [%(levelname)s] %(message)s')
 
 
+@func_log(func_enter, func_leave)
 def get_data_from_provisioner_cli(method, output_format='json') -> str:
     try:
         process = subprocess.run(
@@ -131,8 +132,7 @@ def _report_unsupported_features(features_unavailable):
         uf_db.store_unsupported_features('hare', features_unavailable))
 
 
-@func_enter()
-@func_leave()
+@func_log(func_enter, func_leave)
 def get_server_type(url: str) -> str:
     try:
         provider = ConfStoreProvider(url)
@@ -147,8 +147,7 @@ def get_server_type(url: str) -> str:
         return 'unknown'
 
 
-@func_enter()
-@func_leave()
+@func_log(func_enter, func_leave)
 def is_mkfs_required(url: str) -> bool:
     try:
         conf = ConfStoreProvider(url)
@@ -162,8 +161,7 @@ def is_mkfs_required(url: str) -> bool:
         return False
 
 
-@func_enter()
-@func_leave()
+@func_log(func_enter, func_leave)
 def logrotate_generic(url: str):
     try:
         with open('/opt/seagate/cortx/hare/conf/logrotate/hare',
@@ -181,8 +179,7 @@ def logrotate_generic(url: str):
         logging.error('Cannot configure logrotate for hare (%s)', error)
 
 
-@func_enter()
-@func_leave()
+@func_log(func_enter, func_leave)
 def logrotate(url: str):
     ''' This function is kept incase needed in future.
         This function configures logrotate based on
@@ -208,8 +205,7 @@ def logrotate(url: str):
         logging.error('Cannot configure logrotate for hare (%s)', error)
 
 
-@func_enter()
-@func_leave()
+@func_log(func_enter, func_leave)
 def unsupported_feature(url: str):
     try:
         features_unavailable = []
@@ -230,6 +226,7 @@ def unsupported_feature(url: str):
         logging.error('Error reporting hare unsupported features (%s)', error)
 
 
+@func_log(func_enter, func_leave)
 def _create_consul_namespace(hare_local_dir: str):
     log_dir = f'{hare_local_dir}/consul/log'
     if not os.path.exists(log_dir):
@@ -242,8 +239,7 @@ def _create_consul_namespace(hare_local_dir: str):
         os.makedirs(config_dir)
 
 
-@func_enter()
-@func_leave()
+@func_log(func_enter, func_leave)
 def _start_consul(utils: Utils,
                   stop_event: Event,
                   hare_local_dir: str,
@@ -274,8 +270,7 @@ def _start_consul(utils: Utils,
     return consul_starter
 
 
-@func_enter()
-@func_leave()
+@func_log(func_enter, func_leave)
 def _start_hax(utils: Utils,
                stop_event: Event,
                hare_local_dir: str,
@@ -290,8 +285,7 @@ def _start_hax(utils: Utils,
     return hax_starter
 
 
-@func_enter()
-@func_leave()
+@func_log(func_enter, func_leave)
 def post_install(args):
 
     checkRpm('cortx-motr')
@@ -317,8 +311,7 @@ def disable_hare_consul_agent() -> None:
     execute(cmd)
 
 
-@func_enter()
-@func_leave()
+@func_log(func_enter, func_leave)
 def prepare(args):
     url = args.config[0]
     utils = Utils(ConfStoreProvider(url))
@@ -376,8 +369,7 @@ def start_crond():
     execute(cmd)
 
 
-@func_enter()
-@func_leave()
+@func_log(func_enter, func_leave)
 def start_hax_and_consul_without_systemd(url: str, utils: Utils):
     conf_dir = get_config_dir(url)
     log_dir = get_log_dir(url)
@@ -393,8 +385,7 @@ def start_hax_and_consul_without_systemd(url: str, utils: Utils):
         hax_starter.stop()
 
 
-@func_enter()
-@func_leave()
+@func_log(func_enter, func_leave)
 def start(args):
     logging.info('Starting Hare services')
     url = args.config[0]
@@ -417,8 +408,7 @@ class ProcessStartInfo:
     fid: str
 
 
-@func_enter()
-@func_leave()
+@func_log(func_enter, func_leave)
 def start_mkfs(proc_to_start: ProcessStartInfo) -> int:
     try:
         logging.info('Starting mkfs process [fid=%s] at hostname=%s',
@@ -434,8 +424,7 @@ def start_mkfs(proc_to_start: ProcessStartInfo) -> int:
     return rc
 
 
-@func_enter()
-@func_leave()
+@func_log(func_enter, func_leave)
 def start_mkfs_parallel(hostname: str, hare_config_dir: str):
     # TODO: path needs to be updated according to the new conf-store key
     sysconfig_dir = '/etc/sysconfig/'
@@ -500,8 +489,7 @@ def set_mkfs_done_for(node: str, cns_utils: ConsulUtil):
     cns_utils.kv.kv_put(f'mkfs_done/{node}', 'true')
 
 
-@func_enter()
-@func_leave()
+@func_log(func_enter, func_leave)
 def init(args):
     try:
         url = args.config[0]
@@ -544,8 +532,7 @@ def init(args):
         raise RuntimeError(f'Error while initializing cluster :key={error}')
 
 
-@func_enter()
-@func_leave()
+@func_log(func_enter, func_leave)
 def test(args):
     try:
         url = args.config[0]
@@ -628,8 +615,7 @@ def pre_factory(url):
     motr_cleanup()
 
 
-@func_enter()
-@func_leave()
+@func_log(func_enter, func_leave)
 def get_log_dir(url) -> str:
     provider = ConfStoreProvider(url)
     machine_id = provider.get_machine_id()
@@ -637,8 +623,7 @@ def get_log_dir(url) -> str:
     return log_path + LOG_DIR_EXT + machine_id
 
 
-@func_enter()
-@func_leave()
+@func_log(func_enter, func_leave)
 def get_config_dir(url) -> str:
     provider = ConfStoreProvider(url)
     machine_id = provider.get_machine_id()
@@ -707,6 +692,7 @@ def motr_cleanup():
         raise RuntimeError(f'Error during motr cleanup: key={error}')
 
 
+@func_log(func_enter, func_leave)
 def generate_support_bundle(args):
     try:
         # Default target directory is /tmp/hare
@@ -752,8 +738,7 @@ def noop(args):
     pass
 
 
-@func_enter()
-@func_leave()
+@func_log(func_enter, func_leave)
 def checkRpm(rpm_name):
     rpm_list = subprocess.Popen(["rpm", "-qa"],
                                 stdin=subprocess.PIPE,
@@ -888,8 +873,7 @@ def save(filename: str, contents: str) -> None:
         f.write(contents)
 
 
-@func_enter()
-@func_leave()
+@func_log(func_enter, func_leave)
 def generate_config(url: str, path_to_cdf: str) -> None:
     provider = ConfStoreProvider(url)
     utils = Utils(provider)
@@ -911,8 +895,7 @@ def generate_config(url: str, path_to_cdf: str) -> None:
     utils.import_kv(conf_dir)
 
 
-@func_enter()
-@func_leave()
+@func_log(func_enter, func_leave)
 def update_hax_unit(filename: str) -> None:
     try:
         with open(filename) as f:
@@ -923,8 +906,7 @@ def update_hax_unit(filename: str) -> None:
         raise RuntimeError('Failed to update hax systemd unit: ' + str(e))
 
 
-@func_enter()
-@func_leave()
+@func_log(func_enter, func_leave)
 def config(args):
     consul_starter = None
     try:

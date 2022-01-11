@@ -12,7 +12,7 @@ from hare_mp.types import (ClusterDesc, DiskRef, DList, Maybe, NodeDesc,
                            PoolDesc, PoolType, ProfileDesc, Protocol, Text,
                            M0ServerDesc, DisksDesc, AllowedFailures, Layout,
                            FdmiFilterDesc)
-from hare_mp.utils import func_enter, func_leave, Utils
+from hare_mp.utils import Utils
 
 DHALL_PATH = '/opt/seagate/cortx/hare/share/cfgen/dhall'
 DHALL_EXE = '/opt/seagate/cortx/hare/bin/dhall'
@@ -25,8 +25,6 @@ class PoolHandle:
     pool_type: str
     storage_ndx: int
 
-    @func_enter()
-    @func_leave()
     def tuple(self) -> Tuple[str, str, int]:
         # We could have used dataclasses.astuple() instead here but explicit
         # implementation is safer (we can be sure that the method is not
@@ -35,31 +33,23 @@ class PoolHandle:
 
 
 class CdfGenerator:
-    @func_enter()
-    @func_leave()
     def __init__(self,
                  provider: ValueProvider):
         super().__init__()
         self.provider = provider
         self.utils = Utils(provider)
 
-    @func_enter()
-    @func_leave()
     def _get_dhall_path(self) -> str:
         if P.exists(DHALL_PATH):
             return DHALL_PATH
         raise RuntimeError('CFGEN Dhall types not found')
 
-    @func_enter()
-    @func_leave()
     def _gencdf(self) -> str:
         resource_path = 'dhall/gencdf.dhall'
         raw_content: bytes = pkg_resources.resource_string(
             'hare_mp', resource_path)
         return raw_content.decode('utf-8')
 
-    @func_enter()
-    @func_leave()
     # node>{machine-id}>cluster_id
     def _get_cluster_id(self) -> str:
         conf = self.provider
@@ -70,8 +60,6 @@ class CdfGenerator:
         cluster_id = server_node[machine_id]['cluster_id']
         return cluster_id
 
-    @func_enter()
-    @func_leave()
     def _create_node_descriptions(self) -> List[NodeDesc]:
         nodes: List[NodeDesc] = []
         conf = self.provider
@@ -87,8 +75,6 @@ class CdfGenerator:
         return nodes
 
     # cluster>storage_set[N]>durability>{type}>data/parity/spare
-    @func_enter()
-    @func_leave()
     def _get_pool_property(self, pool: PoolHandle, prop_name: str) -> int:
         conf = self.provider
         (cluster_id, pool_type, storage_ndx) = pool.tuple()
@@ -97,8 +83,6 @@ class CdfGenerator:
             conf.get(f'cluster>storage_set[{storage_ndx}]>'
                      f'durability>{pool_type}>{prop_name}'))
 
-    @func_enter()
-    @func_leave()
     def _get_layout(self, pool: PoolHandle) -> Optional[Layout]:
         conf = self.provider
         (cluster_id, pool_type, storage_ndx) = pool.tuple()
@@ -117,8 +101,6 @@ class CdfGenerator:
                       spare=prop('spare'),
                       parity=prop('parity'))
 
-    @func_enter()
-    @func_leave()
     def _get_devices(self, pool: PoolHandle, node: str) -> List[str]:
         conf = self.provider
         pool_type = pool.pool_type
@@ -134,8 +116,6 @@ class CdfGenerator:
                 f'node>{node}>storage>cvg[{i}]>devices>{prop_name}')
         return all_cvg_devices
 
-    @func_enter()
-    @func_leave()
     def _validate_pool(self, pool: PoolHandle) -> None:
         layout = self._get_layout(pool)
         if not layout:
@@ -168,8 +148,6 @@ class CdfGenerator:
     # Disk or device failure = K(parity)
     # Node failures = floor(K/ceil((N+K+S)/ number of nodes))
     # Controller or CVG failure = min(K, cvg per node * Node failures)
-    @func_enter()
-    @func_leave()
     def _calculate_allowed_failure(self, layout: Layout) -> AllowedFailures:
         conf = self.provider
         machine_id = conf.get_machine_id()
@@ -201,8 +179,6 @@ class CdfGenerator:
                                ctrl=ctrl_failure_allowed,
                                disk=layout.parity)
 
-    @func_enter()
-    @func_leave()
     def _add_pool(self, pool: PoolHandle, out_list: List[PoolDesc]) -> None:
         conf = self.provider
         layout = self._get_layout(pool)
@@ -232,8 +208,6 @@ class CdfGenerator:
                 type=PoolType[pool_type],
                 allowed_failures=Maybe(allowed_failure, 'AllowedFailures')))
 
-    @func_enter()
-    @func_leave()
     def _create_pool_descriptions(self) -> List[PoolDesc]:
         pools: List[PoolDesc] = []
         conf = self.provider
@@ -252,8 +226,6 @@ class CdfGenerator:
 
         return pools
 
-    @func_enter()
-    @func_leave()
     def _create_profile_descriptions(
             self, pool_desc: List[PoolDesc]) -> List[ProfileDesc]:
         profiles: List[ProfileDesc] = []
@@ -265,14 +237,10 @@ class CdfGenerator:
 
         return profiles
 
-    @func_enter()
-    @func_leave()
     def _create_fdmi_filter_descriptions(
             self, nodes: List[NodeDesc]) -> Maybe[List[FdmiFilterDesc]]:
         return Maybe(None, 'List T.FdmiFilterDesc')
 
-    @func_enter()
-    @func_leave()
     def _get_cdf_dhall(self) -> str:
         dhall_path = self._get_dhall_path()
         conf = self.provider
@@ -296,8 +264,6 @@ class CdfGenerator:
                                                      params=params_text)
         return gencdf
 
-    @func_enter()
-    @func_leave()
     def generate(self) -> str:
         gencdf = self._get_cdf_dhall()
 
@@ -323,8 +289,6 @@ class CdfGenerator:
         return yaml_out
 
     # Only required for non K8s
-    @func_enter()
-    @func_leave()
     def _get_iface(self, machine_id: str) -> str:
         ifaces = self.provider.get(
             f'node>{machine_id}>network>data>private_interfaces',
@@ -340,8 +304,6 @@ class CdfGenerator:
         return ifaces[0]
 
     # cortx>motr>interface_type
-    @func_enter()
-    @func_leave()
     def _get_iface_type(self, machine_id: str) -> Optional[Protocol]:
         iface = self.provider.get(
             'cortx>motr>interface_type',
@@ -351,8 +313,6 @@ class CdfGenerator:
         return Protocol[iface]
 
     # node>{machine -id}>storage>cvg[N]>devices>data
-    @func_enter()
-    @func_leave()
     def _get_data_devices(self, machine_id: str, cvg: int) -> DList[Text]:
         store = self.provider
         data_devices = DList(
@@ -362,8 +322,6 @@ class CdfGenerator:
         return data_devices
 
     # TBD motr
-    @func_enter()
-    @func_leave()
     def _get_metadata_device(self,
                              machine_id: str,
                              cvg: int) -> Text:
@@ -376,14 +334,10 @@ class CdfGenerator:
     # as policy needs to be decided for a commong solution that is
     # applicable for LR and LC. This function can be used or removed
     # in that task (EOS-26849)
-    @func_enter()
-    @func_leave()
     def _get_m0d_per_cvg(self, machine_id: str, cvg: int) -> int:
         length = 1
         return length
 
-    @func_enter()
-    @func_leave()
     def _create_node(self, machine_id: str) -> NodeDesc:
         store = self.provider
 

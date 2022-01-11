@@ -25,7 +25,6 @@ import io
 import os
 import logging
 from typing import List
-from functools import wraps
 from distutils.dir_util import copy_tree
 import shutil
 
@@ -37,35 +36,33 @@ from hare_mp.store import ValueProvider
 from hare_mp.types import Disk, DList, Maybe, Text
 
 
-def func_enter():
+def func_log(before, after):
+    def decorate(f):
+        def call(*args, **kwargs):
+            before(f)
+            result = f(*args, **kwargs)
+            after(f)
+            return result
+        return call
+    return decorate
+
+
+def func_enter(func):
     """
     Logs function entry point.
     """
-    def callable(f):
-        @wraps(f)
-        def wrapper(*args, **kwds):
-            func_name = f.__qualname__
-            logging.info('Entering %s', func_name)
-            return f(*args, **kwds)
-        return wrapper
-
-    return callable
+    func_name = func.__qualname__
+    func_line = func.__code__.co_firstlineno
+    func_filename = func.__code__.co_filename
+    logging.info('Entering %s at line %d in file ', func_name, func_line,
+                 func_filename)
 
 
-def func_leave():
+def func_leave(func):
     """
     Logs function exit point.
     """
-    def callable(f):
-        @wraps(f)
-        def wrapper(*args, **kwds):
-            func_name = f.__qualname__
-            result = f(*args, **kwds)
-            logging.info('Leaving %s', func_name)
-            return result
-        return wrapper
-
-    return callable
+    logging.info('Leaving %s', func.__qualname__)
 
 
 class Utils:
